@@ -6,17 +6,7 @@ from pymodaq.control_modules.move_utility_classes import (DAQ_Move_base, comon_p
 from pymodaq_utils.utils import ThreadCommand  # object used to send info back to the main thread
 from pymodaq_gui.parameter import Parameter
 
-#  TODO:
-#  Replace the following fake import with the import of the real Python wrapper of your instrument. Here we suppose that
-#  the wrapper is in the hardware directory, but it could come from an external librairy like pylablib or pymeasure.
 from pymodaq_plugins_teaching.hardware.spectrometer import Spectrometer
-
-# TODO:
-# (1) change the name of the following class to DAQ_Move_TheNameOfYourChoice
-# (2) change the name of this file to daq_move_TheNameOfYourChoice ("TheNameOfYourChoice" should be the SAME
-#     for the class name and the file name.)
-# (3) this file should then be put into the right folder, namely IN THE FOLDER OF THE PLUGIN YOU ARE DEVELOPING:
-#     pymodaq_plugins_my_plugin/daq_move_plugins
 
 
 class DAQ_Move_Monochromator(DAQ_Move_base):
@@ -41,14 +31,11 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
     # TODO add your particular attributes here if any
 
     """
-    is_multiaxes = False  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
-    _axis_names: Union[List[str], Dict[str, int]] = ['Axis1', 'Axis2']  # TODO for your plugin: complete the list
-    _controller_units: Union[str, List[str]] = 'nm'  # TODO for your plugin: put the correct unit here, it could be
-    # TODO  a single str (the same one is applied to all axes) or a list of str (as much as the number of axes)
-    _epsilon: Union[float, List[float]] = 0.1  # TODO replace this by a value that is correct depending on your controller
-    # TODO it could be a single float of a list of float (as much as the number of axes)
-    data_actuator_type = DataActuatorType.DataActuator  # wether you use the new data style for actuator otherwise set this
-    # as  DataActuatorType.float  (or entirely remove the line)
+    is_multiaxes = False 
+    _axis_names: Union[List[str], Dict[str, int]] = [''] 
+    _controller_units: Union[str, List[str]] = 'nm'  
+    _epsilon: Union[float, List[float]] = 0.1  
+    data_actuator_type = DataActuatorType.DataActuator 
 
     params = [   # TODO for your custom plugin: elements to be added here as dicts in order to control your custom stage
                 ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
@@ -72,7 +59,7 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
         """
         pos = DataActuator(data=self.controller.get_wavelength(),  # when writing your own plugin replace this line
                            units=self.axis_unit)
-        pos = self.get_position_with_scaling(pos)
+        pos = self.get_position_with_scaling(pos) 
         return pos
 
     def user_condition_to_reach_target(self) -> bool:
@@ -91,11 +78,9 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
 
     def close(self):
         """Terminate the communication protocol"""
-        ## TODO for your custom plugin
-        raise NotImplementedError  # when writing your own plugin remove this line
         if self.is_master:
-            #  self.controller.your_method_to_terminate_the_communication()  # when writing your own plugin replace this line
-            ...
+            self.controller.close_communication()  # when writing your own plugin replace this line
+
 
     def commit_settings(self, param: Parameter):
         """Apply the consequences of a change of value in the detector settings
@@ -105,9 +90,9 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
         param: Parameter
             A given parameter (within detector_settings) whose value has been changed by the user
         """
-        ## TODO for your custom plugin
         if param.name() == 'axis':
-            self.axis_unit = self.controller.your_method_to_get_correct_axis_unit()
+            #self.axis_unit = self.controller.your_method_to_get_correct_axis_unit()
+            self.axis_unit = 'nm'
             # do this only if you can and if the units are not known beforehand, for instance
             # if the motors connected to the controller are of different type (mm, µm, nm, , etc...)
             # see BrushlessDCMotor from the thorlabs plugin for an exemple
@@ -133,8 +118,7 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
         """
         if self.is_master:  # is needed when controller is master
             self.controller = Spectrometer() #  arguments for instantiation!)
-            initialized = self.controller.open_communication()  # todo
-            #  todo: enter here whatever is needed for your controller initialization and eventual
+            initialized = self.controller.open_communication() 
             #  opening of the communication channel
         else:
             self.controller = controller
@@ -154,7 +138,6 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
         value = self.check_bound(value)  #if user checked bounds, the defined bounds are applied here
         self.target_value = value
         value = self.set_position_with_scaling(value)  # apply scaling if the user specified one
-        ## TODO for your custom plugin
         self.controller.set_wavelength(value.value(self.axis_unit))  # when writing your own plugin replace this line
         self.emit_status(ThreadCommand('Update_Status', ['Moved Monochromator to set Wavelength!']))
 
@@ -169,18 +152,14 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
 
-        ## TODO for your custom plugin
-        raise NotImplementedError  # when writing your own plugin remove this line
-        self.controller.your_method_to_set_a_relative_value(value.value(self.axis_unit))  # when writing your own plugin replace this line
-        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        self.controller.set_wavelength(value.value(self.axis_unit), set_type='rel')  # when writing your own plugin replace this line
+        self.emit_status(ThreadCommand('Update_Status', ['Did relative move!']))
 
     def move_home(self):
         """Call the reference method of the controller"""
 
-        ## TODO for your custom plugin
-        raise NotImplementedError  # when writing your own plugin remove this line
-        self.controller.your_method_to_get_to_a_known_reference()  # when writing your own plugin replace this line
-        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        self.controller.find_reference()  # when writing your own plugin replace this line
+        self.emit_status(ThreadCommand('Update_Status', ['Monochromator moved to Reference point of 600 nm']))
 
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
