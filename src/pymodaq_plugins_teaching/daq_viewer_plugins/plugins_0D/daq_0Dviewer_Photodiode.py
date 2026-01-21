@@ -96,6 +96,7 @@ class DAQ_0DViewer_Photodiode(DAQ_Viewer_base):
         if self.is_master:
             self.controller.close_communication()  # when writing your own plugin replace this line
 
+
     def grab_data(self, Naverage=1, **kwargs):
         """Start a grab from the detector
 

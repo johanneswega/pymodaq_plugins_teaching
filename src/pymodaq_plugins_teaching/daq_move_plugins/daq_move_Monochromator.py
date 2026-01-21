@@ -79,8 +79,8 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
     def close(self):
         """Terminate the communication protocol"""
         if self.is_master:
-            self.controller.close_communication()  # when writing your own plugin replace this line
-
+            self.controller.clo()  # when writing your own plugin replace this line
+    # epfl intro --> keep
 
     def commit_settings(self, param: Parameter):
         """Apply the consequences of a change of value in the detector settings
