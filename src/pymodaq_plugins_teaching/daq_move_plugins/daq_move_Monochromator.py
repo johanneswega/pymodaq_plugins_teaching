@@ -37,7 +37,8 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
     _epsilon: Union[float, List[float]] = 0.1  
     data_actuator_type = DataActuatorType.DataActuator 
 
-    params = [   # TODO for your custom plugin: elements to be added here as dicts in order to control your custom stage
+    params = [ {'title' : 'Tau (ms)', 'name' : 'tau', 'type' : 'float', 'value' : 1234.0, 
+                'suffix' : 'ms', 'visible' : True, 'readonly' : False},
                 ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
     # _epsilon is the initial default value for the epsilon parameter allowing pymodaq to know if the controller reached
     # the target value. It is the developer responsibility to put here a meaningful value
@@ -90,12 +91,8 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
         param: Parameter
             A given parameter (within detector_settings) whose value has been changed by the user
         """
-        if param.name() == 'axis':
-            #self.axis_unit = self.controller.your_method_to_get_correct_axis_unit()
-            self.axis_unit = 'nm'
-            # do this only if you can and if the units are not known beforehand, for instance
-            # if the motors connected to the controller are of different type (mm, µm, nm, , etc...)
-            # see BrushlessDCMotor from the thorlabs plugin for an exemple
+        if param.name() == 'tau':
+            self.controller.tau = param.value() / 1000
 
         elif param.name() == "a_parameter_you've_added_in_self.params":
            self.controller.your_method_to_apply_this_param_change()
@@ -123,6 +120,9 @@ class DAQ_Move_Monochromator(DAQ_Move_base):
         else:
             self.controller = controller
             initialized = True
+
+        if initialized:
+            self.settings.child('tau').setValue(self.controller.tau * 1000)
 
         info = "Monochromator initialized!!!"
         return info, initialized
